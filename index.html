@@ -185,10 +185,10 @@ function configOf(name) {
  let text,note;
  if(name==='Claude Code') {
   const auth = shellQuote('Authorization: Bearer '+token);
-  text = `claude mcp add --scope user --transport http video-mcp \\\n  ${ENDPOINT} \\\n  --header ${auth}`;
+  text = 'claude mcp add --scope user --transport http video-mcp '+ENDPOINT+' --header '+auth;
   note = personalToken ? '在终端运行，写入 Claude Code 用户级配置；重新开启会话后即可使用。已有同名配置时，请先检查原配置。' : '在上方填入获授权的接入 Token 后复制命令。写入用户级配置，重新开启 Claude Code 会话即可使用；已有同名配置无需重复添加。';
  } else if(name==='Codex CLI') {
-  text = `export VMCP_AUTH_TOKEN=${shellQuote(token)}\ncodex mcp add video-mcp \\\n  --url ${ENDPOINT} \\\n  --bearer-token-env-var VMCP_AUTH_TOKEN\ncodex`;
+  text = ['export VMCP_AUTH_TOKEN='+shellQuote(token),'codex mcp add video-mcp --url '+ENDPOINT+' --bearer-token-env-var VMCP_AUTH_TOKEN','codex'].join(String.fromCharCode(10));
   note = '在同一个终端运行。令牌由环境变量提供，再从这个终端启动 Codex；新开终端时需重新设置变量。';
  } else {
   text = JSON.stringify({mcpServers:{'video-mcp':{url:ENDPOINT,headers:{Authorization:'Bearer '+token}}}},null,2);
