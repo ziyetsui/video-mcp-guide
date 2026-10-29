@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="video-mcp 接入与创作指南：15 个 MCP 工具，搜索、拆解、brief、复刻和任务素材包。"><meta name="referrer" content="no-referrer"><title>video-mcp · 接入与创作指南</title><style>
+/* ───────────── Linear-style tokens ───────────── */
+:root {
+  --bg: #08090a;
+  --bg-1: #0f1011;
+  --bg-2: #141516;
+  --bg-3: #1c1d1f;
+  --bg-hover: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+  --text-1: #f7f8f8;
+  --text-2: #d0d6e0;
+  --text-3: #8a8f98;
+  --text-4: #62666d;
+  --accent: #7170ff;
+  --accent-hover: #828fff;
+  --accent-bg: rgba(113,112,255,0.12);
+  --brand: #5e6ad2;
+  --green: #4cb782;
+  --green-bg: rgba(76,183,130,0.12);
+  --orange: #fc7840;
+  --orange-bg: rgba(252,120,64,0.12);
+  --yellow: #f2c94c;
+  --code-bg: #0b0c0d;
+  --shadow-lg: 0 0 0 1px var(--border), 0 16px 40px rgba(0,0,0,0.4);
+  color-scheme: dark;
+}
+:root {
+  --font: "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --r-4: 4px; --r-6: 6px; --r-8: 8px; --r-12: 12px; --r-16: 16px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-feature-settings: "cv01", "ss03";
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+#app { min-height: 100vh; background: var(--bg); color: var(--text-2); }
+h1, h2, h3, h4 { margin: 0; color: var(--text-1); font-weight: 590; text-wrap: balance; }
+p { margin: 0; text-wrap: pretty; }
+a { color: inherit; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+::selection { background: var(--accent-bg); color: var(--text-1); }
+
+/* Shared controls */
+.chip:focus-visible, .copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.copy {
+  position: relative;
+  display: inline-grid; place-items: center;
+  min-width: 52px; height: 26px; padding: 0 8px;
+  border: 0; border-radius: var(--r-6);
+  background: var(--bg-3); color: var(--text-3);
+  font: 510 12px/1 var(--font); cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease, transform 160ms var(--ease-out);
+}
+.copy:active { transform: scale(0.96); }
+.copy > span { grid-area: 1 / 1; transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out), filter 180ms ease; }
+.copy .done { opacity: 0; transform: scale(0.9); filter: blur(2px); color: var(--green); }
+.copy[data-copied] .idle { opacity: 0; transform: scale(0.9); filter: blur(2px); }
+.copy[data-copied] .done { opacity: 1; transform: none; filter: none; }
+@media (hover: hover) and (pointer: fine) { .copy:hover { color: var(--text-1); } }
+.copy::after { content: ""; position: absolute; inset: -8px -4px; }
+
+.tool {
+  display: inline-flex; align-items: center; height: 22px; padding: 0 7px;
+  border-radius: var(--r-4); background: var(--bg-3); color: var(--text-3);
+  font: 400 11.5px/1 var(--mono);
+}
+
+.prompt {
+  border-radius: var(--r-8); background: var(--code-bg);
+  box-shadow: inset 0 0 0 1px var(--border);
+  overflow: hidden;
+}
+.prompt-head {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 36px; padding: 0 6px 0 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-3); font-size: 12px;
+}
+.prompt-body {
+  margin: 0; padding: 12px 14px;
+  color: var(--text-2); font: 400 13px/1.7 var(--font);
+  white-space: pre-wrap;
+}
+
+.logo { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg, var(--accent), var(--green)); flex: none; }
+
+.chip {
+  height: 28px; padding: 0 10px; border: 0; border-radius: 999px;
+  background: transparent; box-shadow: inset 0 0 0 1px var(--border);
+  color: var(--text-3); font: 510 12.5px/1 var(--font); cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, transform 160ms var(--ease-out);
+}
+.chip:active { transform: scale(0.96); }
+@media (hover: hover) and (pointer: fine) { .chip:hover { color: var(--text-1); } }
+.cfg pre { margin: 0; padding: 14px; overflow-x: auto; font: 400 12.5px/1.7 var(--mono); color: var(--text-2); }
+.cfg .k { color: var(--accent-hover); } .cfg .s { color: var(--green); } .cfg .c { color: var(--text-4); }
+.pl-head .brand { display: flex; align-items: center; gap: 10px; color: var(--text-1); font-weight: 590; font-size: 14px; }
+
+/* ═════════════ V4 · Palette ═════════════ */
+.pl { min-height: 100vh; padding: 10vh 16px 160px; }
+.pl-wrap { max-width: 860px; margin: 0 auto; }
+.pl-head { display: flex; align-items: center; gap: 10px; color: var(--text-3); font-size: 13px; }
+.pl h1 { margin-top: 16px; font-size: 30px; letter-spacing: -0.022em; line-height: 1.2; }
+.pl-sub { margin-top: 8px; color: var(--text-3); font-size: 15px; }
+.pl-box { margin-top: 28px; border-radius: var(--r-16); background: var(--bg-1); box-shadow: var(--shadow-lg); overflow: hidden; }
+.pl-input { display: flex; align-items: center; gap: 10px; padding: 0 16px; border-bottom: 1px solid var(--border); color: var(--text-4); }
+.pl-input input { flex: 1; height: 54px; border: 0; background: transparent; outline: none; color: var(--text-1); font: 400 17px/1 var(--font); }
+.pl-input input::placeholder { color: var(--text-4); }
+.pl-input kbd { padding: 2px 6px; border-radius: 4px; background: var(--bg-3); color: var(--text-3); font: 400 11px/1.4 var(--mono); }
+.pl-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; height: 440px; }
+.pl-results { overflow-y: auto; padding: 6px; scroll-padding: 32px 0 6px; }
+.pl-gl { padding: 10px 10px 4px; color: var(--text-4); font-size: 12px; font-weight: 510; }
+.pl-item {
+  display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 10px;
+  min-height: 40px; padding: 6px 10px; border-radius: var(--r-8); cursor: pointer;
+  color: var(--text-2); font-size: 14px;
+}
+.pl-item .ic { color: var(--text-4); text-align: center; font-size: 13px; }
+.pl-item .sub { color: var(--text-4); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+.pl-item[aria-selected="true"] { background: var(--bg-3); color: var(--text-1); }
+.pl-item[aria-selected="true"] .ic { color: var(--accent-hover); }
+.pl-preview { overflow-y: auto; padding: 20px; border-left: 1px solid var(--border); background: var(--bg); }
+.pl-preview h3 { font-size: 16px; letter-spacing: -0.01em; }
+.pl-preview .grp { color: var(--text-4); font-size: 12px; }
+.pl-preview p { margin-top: 8px; color: var(--text-3); font-size: 13.5px; }
+.pl-preview .prompt, .pl-preview .cfg { margin-top: 14px; }
+.pl-preview .prompt-body { font-size: 13px; }
+.pl-preview .tools { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
+.pl-foot { display: flex; align-items: center; gap: 14px; height: 40px; padding: 0 14px; border-top: 1px solid var(--border); color: var(--text-4); font-size: 12px; }
+.pl-foot kbd { padding: 1px 5px; border-radius: 4px; background: var(--bg-3); color: var(--text-3); font: 400 11px/1.5 var(--mono); }
+.pl-foot .spacer { flex: 1; }
+.pl-foot [data-pl-status] { color: var(--text-3); }
+.pl-foot [data-pl-status][data-ok] { color: var(--green); }
+.pl-empty { padding: 48px 16px; text-align: center; color: var(--text-3); font-size: 14px; }
+.pl-try { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 16px; color: var(--text-4); font-size: 13px; }
+
+/* ───────────── Responsive ───────────── */
+@media (max-width: 960px) {
+  .pl-grid { grid-template-columns: 1fr; height: auto; }
+  .pl-results { max-height: 340px; }
+  .pl-preview { border-left: 0; border-top: 1px solid var(--border); }
+}
+@media (max-width: 600px) {
+  .pl { padding-top: 32px; }
+  .pl-foot .hint { display: none; }
+  .pl-item .sub { display: none; }
+}
+
+.pl{padding-top:7vh}.pl-grid{grid-template-columns:minmax(0,1fr) 390px;height:490px}
+.pl-sub{max-width:680px;line-height:1.8}.pl-topline{display:flex;align-items:center;justify-content:space-between;gap:16px}.pl-badge{font:11px var(--mono);color:var(--text-3);border:1px solid var(--border);border-radius:999px;padding:5px 9px}
+.pl-notice{margin-top:18px;padding:11px 14px;border:1px solid rgba(252,120,64,.2);border-radius:8px;background:var(--orange-bg);color:var(--text-2);font-size:12.5px;line-height:1.8}.pl-notice strong{color:#ffab84;font-weight:510}
+.pl-personal{margin-top:18px;border:1px solid var(--border);border-radius:8px;background:var(--bg-1);padding:12px 14px}.pl-personal summary{cursor:pointer;font-size:12.5px;color:var(--text-3)}.pl-personal label{display:block;font-size:12px;color:var(--text-3);margin-top:14px}.token-row{display:flex;gap:8px;margin-top:6px}.token-row input{min-width:0;flex:1;width:100%;border:1px solid var(--border-strong);border-radius:6px;background:var(--bg);color:var(--text-1);padding:10px 12px;font:12px var(--mono)}.token-row input:focus{outline:2px solid var(--accent);outline-offset:2px}.pl-personal p{font-size:12px;line-height:1.8;color:var(--text-4);margin-top:8px}.pl-bottom{margin-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;color:var(--text-4);font-size:11.5px}.pl-bottom a{text-decoration:none}.pl-bottom a:hover{color:var(--text-2)}.cfg pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}.pl-preview .tools{gap:5px}.pl-item .sub{max-width:140px}.pl-preview{overscroll-behavior:contain}.pl-input input{min-width:0}.pl-personal button{flex:none;height:auto;padding:8px 12px}.copy::after{pointer-events:none}.pl-preview>.prompt{margin-top:14px}
+@media(max-width:800px){.pl-grid{grid-template-columns:1fr;height:auto}.pl-results{max-height:310px}.pl-preview{min-height:230px;border-left:0;border-top:1px solid var(--border)}.pl{padding-top:32px}.pl h1{font-size:26px}.pl-topline{align-items:flex-start}.pl-badge{font-size:10px}.pl-box{margin-top:20px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+</style></head><body><div id="app"></div><noscript>请开启 JavaScript 以搜索指南和复制配置。MCP 接入地址：https://video-mcp-ziye.zeabur.app/mcp</noscript><script>
+'use strict';
+const C = {"title": "把爆款参考，变成创作任务", "can": [["⌕", "找爆款与竞品", "在小红书、抖音搜索视频或图文，每批展示 6 张卡片；支持换批与调整偏好。", ["vmcp_start_search", "vmcp_list_cards", "vmcp_more_cards"]], ["↗", "读取一条内容", "从小红书或抖音链接读取内容、作者、互动数据和媒体信息。", ["vmcp_get_content"]], ["▤", "拆解内容结构", "一次选 1–5 条；分析钩子、结构和切入点，附证据并标注推断。", ["vmcp_start_breakdown", "vmcp_get_breakdown"]], ["✎", "写 brief 与修订", "把参考拆解、产品卖点、必说禁说和风格要求组织成创作者 brief。", ["vmcp_start_brief", "vmcp_get_brief"]], ["◈", "样稿与任务素材包", "先看 3 份样稿，再批量生成脚本或图文变体；素材包摘要用于交付。", ["vmcp_start_replicate", "vmcp_get_replication", "vmcp_create_task_package", "vmcp_get_task_package"]], ["◷", "任务与花费", "长任务在后台继续；可查进度、取消任务，查看当天花费与剩余额度。", ["vmcp_get_job", "vmcp_cancel_job", "vmcp_get_usage"]]], "plays": [["小红书，找第一批爆款", "搜索", "视频", "给出产品和卖点，先找 6 张参考卡片。", "我在推广「便携咖啡杯」，面向通勤上班族，卖点是单手开合、方便携带。请在小红书找视频参考。先 dry_run 估算费用，等我确认再搜索；首批准备好后，列出 6 张卡片、爆款依据和与产品的相关度。", ["vmcp_start_search", "vmcp_list_cards"]], ["抖音图文，换一个内容形式", "搜索", "图文", "每次搜索只选一个平台和一种内容形式。", "产品是「无糖茶」，目标人群是办公室上班族，卖点是不含糖、清爽解腻。请在抖音找图文参考。先估算费用，等我确认后执行；区分官方榜单和自建榜，不要编造未公开的数据。", ["vmcp_start_search", "vmcp_list_cards"]], ["看看竞品怎么做", "搜索", "竞品", "提供同平台竞品主页，或用品牌名补充搜索。", "接着这个产品，在小红书找竞品参考。竞品主页是「粘贴主页链接」。请先估算费用，再按我的确认执行；告诉我哪些卡片来自竞品账号，哪些只是品牌关键词匹配。", ["vmcp_start_search", "vmcp_list_cards"]], ["不合适，换一批", "筛选", "换一换", "保留同一次搜索，可附调整意见。", "当前这批太像广告了。基于同一次搜索，换到下一批，优先生活场景、自然分享；先估算新增费用，得到确认后执行。保留 search_id，不要重新开一次搜索。", ["vmcp_more_cards", "vmcp_list_cards"]], ["拆开看，它为什么有效", "拆解", "1–5 条", "拆开头、结构和切入点，结论带证据。", "请拆解我选中的这 3 张卡片。先给费用估算，确认后再执行。按开头钩子、内容结构、产品切入点、为什么有效整理，每个判断附原文、时间点或画面依据；推断要明确标出来。", ["vmcp_start_breakdown", "vmcp_get_job", "vmcp_get_breakdown"]], ["把参考变成创作 brief", "Brief", "创作要求", "用已经拆解的参考，写给创作者的完整要求。", "用选中的拆解结果写一份 brief。产品和卖点沿用前面的信息，主打第一个卖点；必须说「粘贴要求」，不能说「粘贴禁用表述」，风格偏日常分享，视频 40–50 秒。缺少的产品信息先问我，费用确认后再生成。", ["vmcp_start_brief", "vmcp_get_brief"]], ["改 brief，不从头再来", "Brief", "迭代", "沿用上一版 brief，并给出具体反馈。", "修改刚才的 brief：开场先讲通勤场景，不直接喊卖点；结尾用一个自然的使用动作收住。请基于原 brief_id 和这条反馈修订，先估算费用，确认后执行。", ["vmcp_start_brief", "vmcp_get_brief"]], ["先看 3 份样稿", "复刻", "样稿", "brief 确认后，选其中一条参考做样稿。", "这份 brief 已确认。以其中我选中的那条参考做复刻，先估算费用，确认后只生成 3 份样稿。视频给脚本和分镜，图文给标题、正文和标签；列出每份的差异与自检结果，等我审稿。", ["vmcp_start_replicate", "vmcp_get_replication"]], ["素材包，先算钱再生成", "交付", "先估价", "先看批量生成费用，再决定是否继续。", "这 3 份样稿已确认。请对创建任务素材包做一次 dry_run，只返回预估费用和生成数量，不实际创建。视频目标 100 个脚本变体、图文目标 10 个；等我确认预算后再继续。", ["vmcp_create_task_package"]], ["确认素材包，拿到交付编号", "交付", "素材包", "批量生成并冻结后，查看摘要和 package_id。", "我已确认上一条估算，请基于已审过的样稿创建任务素材包。完成后读取摘要，给我 package_id、状态、变体数量、参考内容和拍摄要求。先不要向外部平台发布。", ["vmcp_create_task_package", "vmcp_get_job", "vmcp_get_task_package"]], ["接着上次的任务", "任务", "进度", "知道 job_id 就能继续查，避免重复提交。", "继续查询这个任务：「粘贴 job_id」。使用 vmcp_get_job，wait_seconds=25；仍运行就继续长轮询，不要先 sleep，也不要重复创建任务。完成后按 result_refs 读取结果。", ["vmcp_get_job"]], ["看花费，或停下任务", "任务", "额度", "查询当天花费；不想继续时按任务取消。", "先查今天已花费和剩余额度。如果我随后给出 job_id 并明确说取消，再取消那个任务。告诉我取消不会退回已经发生的第三方费用，不要取消其他任务。", ["vmcp_get_usage", "vmcp_cancel_job"]]], "notes": [["先估算，再执行", "提交类工具支持 dry_run。复制玩法提示词不会直接调用服务；交给 AI 后仍应确认费用，尤其是批量素材包。"], ["Token 只留在你手里", "连接客户端使用 VMCP_AUTH_TOKEN。不要用平台令牌替代，也不要把含令牌的截图或配置公开。页面输入仅保存在当前页面内存，刷新即清空。"], ["视频复刻交付脚本", "视频变体是脚本、分镜和拍摄要求；图文变体是标题、正文和标签。这里不会直接生成拍好的成片。"], ["长任务无需反复提交", "拿到 job_id 后查 vmcp_get_job，最长等待 25 秒；仍在运行就继续查。重复提交可能产生重复任务和费用。"], ["按 Next 提示处理错误", "报错采用 CODE: 原因. Next: 下一步。内容删除或不可见时不要盲目重试；额度用尽先查 usage。"], ["素材包与平台接入", "广告主侧可读取素材包摘要；全部变体由平台接口读取。suren 尚未接入，生成 package_id 不等于已经发布任务。"]]};
+const ENDPOINT = 'https://video-mcp-ziye.zeabur.app/mcp';
+let personalToken = '';
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const shellQuote = s => "'" + s.replace(/'/g, "'\"'\"'") + "'";
+const pl = {q:'',idx:0};
+const pad = i => String(i+1).padStart(2,'0');
+const copyBtn = text => `<button class="copy" type="button" data-copy="${esc(text)}" aria-label="复制"><span class="idle">复制</span><span class="done" aria-hidden="true">已复制</span></button>`;
+const prompt = (label,text) => `<div class="prompt"><div class="prompt-head"><span>${esc(label)}</span>${copyBtn(text)}</div><pre class="prompt-body">${esc(text)}</pre></div>`;
+const tools = arr => `<div class="tools">${arr.map(t=>`<span class="tool">${esc(t)}</span>`).join('')}</div>`;
+const TEST_PROMPT = '列出 video-mcp 的全部工具，然后只调用一次 vmcp_get_usage 查询今日花费和剩余额度。不要发起搜索、拆解、brief、复刻或素材包任务。';
+const FIX_PROMPT = '我在连接 video-mcp。接入地址是 https://video-mcp-ziye.zeabur.app/mcp。客户端是「填写客户端」。报错是：\n「粘贴报错，删去 Token」\n请检查客户端配置、HTTP 传输和 Authorization Bearer 请求头，再验证工具列表和 vmcp_get_usage。不要执行付费业务任务，不要输出我的令牌。';
+function configOf(name) {
+ const token = personalToken || '<你的 VMCP_AUTH_TOKEN>';
+ let text,note;
+ if(name==='Claude Code') {
+  const auth = shellQuote('Authorization: Bearer '+token);
+  text = `claude mcp add --scope user --transport http video-mcp \\\n  ${ENDPOINT} \\\n  --header ${auth}`;
+  note = personalToken ? '在终端运行，写入 Claude Code 用户级配置；重新开启会话后即可使用。已有同名配置时，请先检查原配置。' : '在上方填入获授权的接入 Token 后复制命令。写入用户级配置，重新开启 Claude Code 会话即可使用；已有同名配置无需重复添加。';
+ } else if(name==='Codex CLI') {
+  text = `export VMCP_AUTH_TOKEN=${shellQuote(token)}\ncodex mcp add video-mcp \\\n  --url ${ENDPOINT} \\\n  --bearer-token-env-var VMCP_AUTH_TOKEN\ncodex`;
+  note = '在同一个终端运行。令牌由环境变量提供，再从这个终端启动 Codex；新开终端时需重新设置变量。';
+ } else {
+  text = JSON.stringify({mcpServers:{'video-mcp':{url:ENDPOINT,headers:{Authorization:'Bearer '+token}}}},null,2);
+  note = name==='Cursor' ? '写入 ~/.cursor/mcp.json（与已有服务器合并）。先在上方填入自己的 Token，再复制配置。' : '供支持远程 HTTP MCP 和自定义请求头的客户端使用。先填 Token，按客户端要求合并 mcpServers 配置。';
+ }
+ return {text,note};
+}
+function plEntries(){
+ const e=[{g:'接入',ic:'1',t:'线上接入地址',sub:'HTTP · Bearer',d:'这是 MCP 接入地址。配置到支持远程 HTTP MCP 的客户端，再用自然语言调用。',copy:ENDPOINT,copyLabel:'地址',code:ENDPOINT}];
+ for(const name of ['Claude Code','Codex CLI','Cursor','通用 JSON']){
+  const c=configOf(name); e.push({g:'接入',ic:'2',t:name+' 配置',sub:name==='Claude Code'?'复制命令，即可接入':'客户端配置',d:c.note,copy:c.text,copyLabel:'配置',code:c.text,kw:'安装 add config 设置'});
+ }
+ e.push({g:'接入',ic:'3',t:'验证连接，不发起付费任务',sub:'列工具 · 查额度',d:'把这句话发给已接入的 AI。2026-10-29 已验证 Claude Code 可连接并发现 15 个工具。',copy:TEST_PROMPT,copyLabel:'提示词',tools:['vmcp_get_usage']});
+ C.plays.forEach(([t,lv,cat,d,p,ts],i)=>e.push({g:'玩法',ic:pad(i),t,sub:lv+' · '+cat,d,copy:p,copyLabel:'提示词',tools:ts,lv}));
+ C.can.forEach(([ic,t,d,ts])=>e.push({g:'能做什么',ic,t,sub:ts.length+' 个工具',d,copy:ts.join(', '),copyLabel:'工具名',tools:ts}));
+ e.push({g:'排障',ic:'!',t:'接不上，让 AI 检查配置',sub:'401 · 报错 · 连接失败',d:'401 先检查 Token 和 Bearer 请求头；502/503 先检查服务状态。把脱敏报错交给 AI，修好后只查工具和额度验证。',copy:FIX_PROMPT,copyLabel:'提示词',kw:'错误 修复 失败 鉴权'});
+ C.notes.forEach(([t,d])=>e.push({g:'注意事项',ic:'●',t,sub:'使用边界',d,copy:t+'：'+d,copyLabel:'说明'}));
+ return e;
+}
+function renderPalette(){return `<main class="pl"><div class="pl-wrap">
+ <div class="pl-topline"><div class="pl-head"><span class="brand"><span class="logo" aria-hidden="true"></span>video-mcp</span></div><span class="pl-badge">15 TOOLS / HTTP MCP</span></div>
+ <h1>${esc(C.title)}</h1><p class="pl-sub">找参考、拆结构、写 brief、出样稿。接入配置和 12 个玩法，都能在这里找到、复制，交给你的 AI。</p>
+ <div class="pl-notice"><strong>接入已验证 · 业务调用待充值</strong><br>截至 2026-10-29，服务已部署；TikHub 仍欠费，真实搜索和拆解需充值后使用。先用「查额度」确认连接。</div>
+ <details class="pl-personal" open><summary>填入接入 Token，复制可直接运行的配置</summary><label for="vmcp-token">VMCP_AUTH_TOKEN</label><div class="token-row"><input id="vmcp-token" type="password" placeholder="粘贴 Token，仅保留在当前页面" autocomplete="off" spellcheck="false" autocapitalize="off" aria-describedby="token-note"><button class="chip" type="button" data-clear-token>清空</button></div><p id="token-note">向服务提供方获取 VMCP_AUTH_TOKEN；填入后，下面的配置自动替换为你的值。不会保存到浏览器，也不会由本页发往服务端。</p></details>
+ <section class="pl-box" aria-label="MCP 指南搜索面板"><label class="pl-input"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><input type="search" data-pl-q placeholder="搜：Claude 配置、找爆款、brief、费用…" aria-label="搜索接入、玩法和工具" role="combobox" aria-expanded="true" aria-controls="pl-list" autocomplete="off" spellcheck="false"><kbd>/</kbd></label>
+ <div class="pl-grid"><div class="pl-results" id="pl-list" role="listbox" aria-label="指南条目"></div><div class="pl-preview" data-pl-preview></div></div>
+ <div class="pl-foot"><span class="hint"><kbd>↑</kbd> <kbd>↓</kbd> 选择</span><span class="hint"><kbd>↵</kbd> 复制</span><span class="hint"><kbd>esc</kbd> 清空</span><span class="spacer"></span><span data-pl-status role="status" aria-live="polite"></span></div></section>
+ <div class="pl-try">试试：${['Claude Code','找爆款','拆解','brief','样稿','素材包','费用','报错'].map(w=>`<button class="chip" type="button" data-pl-try="${esc(w)}">${esc(w)}</button>`).join('')}</div>
+ <footer class="pl-bottom"><span>搜索 → 拆解 → brief → 3 份样稿 → 任务素材包</span><span>复制配置或提示词，不会直接执行任务</span></footer>
+ </div></main>`;}
+async function writeClipboard(text){
+ if(navigator.clipboard && window.isSecureContext){try{await navigator.clipboard.writeText(text);return;}catch{}}
+ const prev=document.activeElement,t=document.createElement('textarea');t.value=text;t.style.cssText='position:fixed;left:-9999px;top:0';document.body.append(t);t.select();let ok=false;
+ try{ok=document.execCommand('copy');}finally{t.remove();if(prev instanceof HTMLElement)prev.focus({preventScroll:true});}
+ if(!ok)throw new Error('clipboard unavailable');
+}
+function requestToken(){const token=document.getElementById("vmcp-token");token.closest("details").open=true;token.focus();}
+function hydratePalette(root){
+ const q=root.querySelector('[data-pl-q]'),list=root.querySelector('#pl-list'),prev=root.querySelector('[data-pl-preview]'),status=root.querySelector('[data-pl-status]');let shown=[],timer;
+ function setStatus(text,ok=false){clearTimeout(timer);status.textContent=text;status.toggleAttribute('data-ok',ok);if(ok)timer=setTimeout(()=>setStatus(shown.length+' 项'),1800);}
+ function preview(){const x=shown[pl.idx];if(!x){prev.replaceChildren();return;}prev.innerHTML=`<div class="grp">${esc(x.g)}${x.lv?' · '+esc(x.lv):''}</div><h3 style="margin-top:6px">${esc(x.t)}</h3><p>${esc(x.d)}</p>${x.code?`<div class="prompt cfg"><div class="prompt-head"><span>${esc(x.copyLabel)}</span>${copyBtn(x.copy)}</div><pre>${esc(x.code)}</pre></div>`:prompt(x.copyLabel,x.copy)}${x.tools?tools(x.tools):''}`;}
+ function highlight(scroll){q.removeAttribute('aria-activedescendant');list.querySelectorAll('.pl-item').forEach(el=>{const on=Number(el.dataset.i)===pl.idx;el.setAttribute('aria-selected',String(on));if(on){q.setAttribute('aria-activedescendant',el.id);if(scroll)el.scrollIntoView({block:'nearest'});}});preview();}
+ function filter(){const words=pl.q.trim().toLowerCase().split(/\s+/).filter(Boolean);shown=plEntries().filter(x=>{const text=[x.t,x.sub,x.d,x.g,x.kw||'',...(x.tools||[])].join(' ').toLowerCase();return words.every(w=>text.includes(w));});pl.idx=Math.min(Math.max(pl.idx,0),Math.max(shown.length-1,0));
+  if(!shown.length){q.removeAttribute('aria-activedescendant');list.innerHTML=`<div class="pl-empty">没有匹配「${esc(pl.q)}」的内容<br><span style="font-size:12px;color:var(--text-4)">换个词，或按 esc 清空</span></div>`;prev.replaceChildren();setStatus('0 项');return;}
+  let g='';list.innerHTML=shown.map((x,i)=>{const head=x.g!==g?`<div class="pl-gl" role="presentation">${esc(x.g)}</div>`:'';g=x.g;return `${head}<div class="pl-item" role="option" id="pl-o${i}" data-i="${i}" aria-selected="false"><span class="ic" aria-hidden="true">${esc(x.ic)}</span><span>${esc(x.t)}</span><span class="sub">${esc(x.sub)}</span></div>`;}).join('');setStatus(shown.length+' 项');highlight(false);}
+ async function copyCurrent(){const x=shown[pl.idx];if(!x)return;if(x.copyLabel==='配置'&&!personalToken){requestToken();setStatus('先填入接入 Token，再复制配置');return;}try{await writeClipboard(x.copy);setStatus('已复制'+x.copyLabel+'：'+x.t,true);}catch{setStatus('复制未成功，请选择右侧文本手动复制');}}
+ q.addEventListener('input',()=>{pl.q=q.value;pl.idx=0;filter();});
+ q.addEventListener('keydown',e=>{if(e.isComposing)return;if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!shown.length)return;pl.idx=Math.max(0,Math.min(pl.idx+(e.key==='ArrowDown'?1:-1),shown.length-1));highlight(true);}else if(e.key==='Enter'){e.preventDefault();copyCurrent();}else if(e.key==='Escape'){e.preventDefault();q.value=pl.q='';pl.idx=0;filter();}});
+ list.addEventListener('mousemove',e=>{const it=e.target.closest('.pl-item');if(it&&Number(it.dataset.i)!==pl.idx){pl.idx=Number(it.dataset.i);highlight(false);}});
+ list.addEventListener('click',e=>{const it=e.target.closest('.pl-item');if(it){pl.idx=Number(it.dataset.i);highlight(false);copyCurrent();}});
+ root.addEventListener('click',e=>{const chip=e.target.closest('[data-pl-try]');if(chip){q.value=pl.q=chip.dataset.plTry;pl.idx=0;filter();q.focus({preventScroll:true});}});
+ const token=root.querySelector('#vmcp-token');token.addEventListener('input',()=>{personalToken=token.value.trim();filter();});root.querySelector('[data-clear-token]').addEventListener('click',()=>{token.value=personalToken='';filter();token.focus();});
+ root.addEventListener('click',async e=>{const b=e.target.closest('[data-copy]');if(!b)return;if(b.dataset.copy.includes('<你的 VMCP_AUTH_TOKEN>')){requestToken();setStatus('先填入接入 Token，再复制配置');return;}try{await writeClipboard(b.dataset.copy);b.setAttribute('data-copied','');clearTimeout(b._t);b._t=setTimeout(()=>b.removeAttribute('data-copied'),1600);setStatus('已复制',true);}catch{setStatus('复制未成功，请手动选择文本');}});
+ document.addEventListener('keydown',e=>{if(e.key==='/'&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&!e.target.isContentEditable&&!/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)){e.preventDefault();q.focus();}});
+ filter();pl.idx=1;highlight(false);if(matchMedia('(pointer:fine)').matches)q.focus({preventScroll:true});
+}
+const app=document.getElementById('app');app.innerHTML=renderPalette();hydratePalette(app.firstElementChild);
+</script></body></html>
